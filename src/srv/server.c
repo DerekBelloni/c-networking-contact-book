@@ -33,33 +33,7 @@ int main(int argc, char *argv[]) {
 
     struct contact_t *contacts = NULL;
 
-    while ((c = getopt(argc, argv, "nlf:a:u:r:")) != -1) {
-        switch(c) {
-            case 'n':
-                newFile = true;
-                break;
-            case 'f':
-                filepath = optarg;
-                break;
-            case 'a':
-                addString = optarg;
-                break;
-            case 'u':
-                updateString = optarg;
-                break;
-            case 'r':
-                removeString = optarg;
-                break;
-            case 'l':
-                listContacts = true;
-                break; 
-            case '?':
-                printf("Uknown option -%c\n", c);
-                break;
-            default:
-                return -1;
-        }
-    }
+    // instead
  
     if (filepath == NULL) {
         printf("Filepath is a required argument\n");
