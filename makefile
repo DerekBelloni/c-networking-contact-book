@@ -13,17 +13,18 @@ run: clean default
 
 clean:
 	rm -f obj/srv/*.o
+	rm -f obj/cli/*.o
 	rm -f bin/*
 
 $(TARGET_SRV): $(OBJ_SRV)
-	gcc -o $@ $?
+	gcc -o $@ $^
 
 $(OBJ_SRV): obj/srv/%.o: src/srv/%.c
 	mkdir -p $(@D)
 	gcc -c $< -o $@ -Iinclude
 
 $(TARGET_CLI): $(OBJ_CLI)
-	gcc -o $@ $?
+	gcc -o $@ $^
 
 $(OBJ_CLI): obj/cli/%.o: src/cli/%.c
 	mkdir -p $(@D)
