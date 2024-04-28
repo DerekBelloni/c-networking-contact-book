@@ -76,7 +76,7 @@ int handle_connection(unsigned short port) {
         // convert to host endian
         clientHdr->type = ntohl(clientHdr->type);
         clientHdr->length = ntohs(clientHdr->length);
-        printf("Client header type: %d\n", clientHdr->type);
+        
         if (clientHdr->type == MSG_HELLO_REQ) {
             printf("Hello message received!!!\n");
         }
