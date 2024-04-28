@@ -24,7 +24,6 @@ int print_usage(char *argv[]) {
 }
 
 int handle_connection(unsigned short port) {
-    printf("Port: %d\n", port);
     struct sockaddr_in serverInfo = {0};
     struct sockaddr_in clientInfo = {0};
     socklen_t clientSize = sizeof(clientInfo);
@@ -51,19 +50,42 @@ int handle_connection(unsigned short port) {
         return -1;
     } 
 
+    printf("Server listening on port: %d\n", port);
+
     while (1) {
+        printf("In while loop\n");
         int clientFd = accept(fd, (struct sockaddr*)&clientInfo, &clientSize);
         if (clientFd == -1) {
             perror("accept");
             close(fd);
             return -1;
         }
+        
+        // create a buffer for the client header and data
+        char buffer[4096];
+        ssize_t bytesRead = read(clientFd, buffer, sizeof(buffer));
+        if (bytesRead == -1) {
+            perror("read");
+            close(clientFd);
+            continue;
+        }
+
+        // set a clientHdr and cast it to the buffer
+        proto_hdr_t *clientHdr = (proto_hdr_t *)buffer;
+
+        // convert to host endian
+        clientHdr->type = ntohl(clientHdr->type);
+        clientHdr->length = ntohs(clientHdr->length);
+        printf("Client header type: %d\n", clientHdr->type);
+        if (clientHdr->type == MSG_HELLO_REQ) {
+            printf("Hello message received!!!\n");
+        }
+
     }
     return 0;
 }
 
 int main(int argc, char *argv[]) {
-    printf("Entering main function\n");
     int c;
     int count = 0;
     FILE *fp;
