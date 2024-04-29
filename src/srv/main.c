@@ -53,14 +53,14 @@ int handle_connection(unsigned short port) {
     printf("Server listening on port: %d\n", port);
 
     while (1) {
-        printf("In while loop\n");
         int clientFd = accept(fd, (struct sockaddr*)&clientInfo, &clientSize);
+       
         if (clientFd == -1) {
             perror("accept");
             close(fd);
             return -1;
         }
-        
+     
         // create a buffer for the client header and data
         char buffer[4096];
         ssize_t bytesRead = read(clientFd, buffer, sizeof(buffer));
@@ -74,11 +74,23 @@ int handle_connection(unsigned short port) {
         proto_hdr_t *clientHdr = (proto_hdr_t *)buffer;
 
         // convert to host endian
-        clientHdr->type = ntohl(clientHdr->type);
+        clientHdr->type = ntohs(clientHdr->type);
         clientHdr->length = ntohs(clientHdr->length);
+
+        proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
+        clientHello->proto = ntohs(clientHello->proto);
         
+
         if (clientHdr->type == MSG_HELLO_REQ) {
             printf("Hello message received!!!\n");
+
+            // check the protocol version, handle error
+            // might need a specific function for sending an error message
+            if (clientHello->proto != PROTO_VER) {
+                // handle error here
+            }
+
+            continue;
         }
 
     }

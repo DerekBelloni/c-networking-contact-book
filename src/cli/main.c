@@ -18,19 +18,21 @@ int send_hello(int fd) {
     proto_hdr_t *hdr = (proto_hdr_t*)buff;
     hdr->type = MSG_HELLO_REQ;
     hdr->length = 1;
-
     // set the protocol message to the buffer, after the header
     proto_hello_req *hello = (proto_hello_req*)&hdr[1];
-    hello->proto = PROTO_VER;
+    hello->proto = htons(PROTO_VER);
 
     // convert to endian
-    hdr->type = htonl(hdr->type);
+    hdr->type = htons(hdr->type);
     hdr->length = htons(hdr->length);
-    hello->proto = htons(hello->proto);
 
     write(fd, buff, sizeof(proto_hdr_t) + sizeof(proto_hello_req));
 
-    return 0;
+    // receive the response
+
+
+    // return success    
+    return STATUS_SUCCESS;
 }
 
 int main(int argc, char *argv[]) {
@@ -78,5 +80,6 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    send_hello(fd);
     return 0;
 }

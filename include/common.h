@@ -13,7 +13,7 @@ typedef enum {
 } msg_type_e;
 
 typedef struct {
-    msg_type_e type;
+    uint16_t type;
     uint16_t length;
 } proto_hdr_t;
 
