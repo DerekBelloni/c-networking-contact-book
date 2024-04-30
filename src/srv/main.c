@@ -23,6 +23,21 @@ int print_usage(char *argv[]) {
     return 1;
 }
 
+int handle_protocol_mismatch(int clientFd, char *writeBuffer) {
+    // create an error hdr from the writeBuffer
+    proto_hdr_t *errorHdr = (proto_hdr_t*)writeBuffer;
+    // use MSG_ERROR as the hdr type
+    errorHdr->type = htons(MSG_ERROR);
+    errorHdr->length = htons(1);
+    // use the error_type_e as the specific error type, place in the buffer after the header
+    error_resp *errorResp = (error_resp*)&errorHdr[1];
+    errorResp->errorType = htons(PROTOCOL_ERROR);
+
+    write(clientFd, writeBuffer, sizeof(proto_hdr_t) + sizeof(error_resp));
+
+    return STATUS_SUCCESS;
+}
+
 int handle_connection(unsigned short port) {
     struct sockaddr_in serverInfo = {0};
     struct sockaddr_in clientInfo = {0};
@@ -62,8 +77,9 @@ int handle_connection(unsigned short port) {
         }
      
         // create a buffer for the client header and data
-        char buffer[4096];
-        ssize_t bytesRead = read(clientFd, buffer, sizeof(buffer));
+        char readBuffer[4096];
+        char writeBuffer[4096];
+        ssize_t bytesRead = read(clientFd, readBuffer, sizeof(readBuffer));
         if (bytesRead == -1) {
             perror("read");
             close(clientFd);
@@ -71,23 +87,20 @@ int handle_connection(unsigned short port) {
         }
 
         // set a clientHdr and cast it to the buffer
-        proto_hdr_t *clientHdr = (proto_hdr_t *)buffer;
+        proto_hdr_t *clientHdr = (proto_hdr_t *)readBuffer;
 
         // convert to host endian
         clientHdr->type = ntohs(clientHdr->type);
         clientHdr->length = ntohs(clientHdr->length);
-
+        printf("banana\n");
         proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
         clientHello->proto = ntohs(clientHello->proto);
         
-
         if (clientHdr->type == MSG_HELLO_REQ) {
             printf("Hello message received!!!\n");
-
-            // check the protocol version, handle error
-            // might need a specific function for sending an error message
+            
             if (clientHello->proto != PROTO_VER) {
-                // handle error here
+                handle_protocol_mismatch(clientFd, writeBuffer);
             }
 
             continue;

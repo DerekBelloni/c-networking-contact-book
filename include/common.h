@@ -17,8 +17,18 @@ typedef enum {
     MSG_CONTACT_DEL_REQ,
     MSG_CONTACT_DEL_RESP,
     MSG_CONTACT_UPDATE_REQ,
-    MSG_CONTACT_UPDATE_RESP
+    MSG_CONTACT_UPDATE_RESP,
+    MSG_ERROR
 } msg_type_e;
+
+typedef enum {
+    PROTOCOL_ERROR,
+    TYPE_ERROR
+} error_type_e;
+
+typedef struct {
+    uint16_t errorType;
+} error_resp;
 
 typedef struct {
     uint16_t type;

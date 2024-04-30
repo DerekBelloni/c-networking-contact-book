@@ -13,23 +13,37 @@
 
 int send_hello(int fd) {
     // need to create a buffer for the header
-    char buff[4096] = {0};
+    char writeBuffer[4096] = {0};
+    char readBuffer[4096] = {0};
     // create the header
-    proto_hdr_t *hdr = (proto_hdr_t*)buff;
+    proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
     hdr->type = MSG_HELLO_REQ;
     hdr->length = 1;
     // set the protocol message to the buffer, after the header
     proto_hello_req *hello = (proto_hello_req*)&hdr[1];
-    hello->proto = htons(PROTO_VER);
+    hello->proto = htons(82);
 
     // convert to endian
     hdr->type = htons(hdr->type);
     hdr->length = htons(hdr->length);
-
-    write(fd, buff, sizeof(proto_hdr_t) + sizeof(proto_hello_req));
-
+    printf("write to server\n");
+    write(fd, writeBuffer, sizeof(proto_hdr_t) + sizeof(proto_hello_req));
+    
     // receive the response
+    ssize_t bytesRead = read(fd, readBuffer, sizeof(readBuffer));
+    if (bytesRead == -1) {
+        perror("read");
+        exit(1);
+    }
 
+    proto_hdr_t *serverHdr = (proto_hdr_t*)readBuffer;
+
+    serverHdr->type = ntohs(serverHdr->type);
+    serverHdr->length = ntohs(serverHdr->length);
+
+    if (serverHdr->type == MSG_ERROR) {
+        printf("Error type received\n");
+    }
 
     // return success    
     return STATUS_SUCCESS;
