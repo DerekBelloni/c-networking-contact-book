@@ -26,7 +26,8 @@ int send_hello(int fd) {
     // convert to endian
     hdr->type = htons(hdr->type);
     hdr->length = htons(hdr->length);
-    printf("write to server\n");
+    
+    // Write to the serve
     write(fd, writeBuffer, sizeof(proto_hdr_t) + sizeof(proto_hello_req));
     
     // receive the response
@@ -41,6 +42,7 @@ int send_hello(int fd) {
     serverHdr->type = ntohs(serverHdr->type);
     serverHdr->length = ntohs(serverHdr->length);
 
+    // This shouls be its own method using a switch statement to handle different print statements for different types of errors
     if (serverHdr->type == MSG_ERROR) {
         printf("Error type received\n");
     }

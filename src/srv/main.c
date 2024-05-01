@@ -92,7 +92,7 @@ int handle_connection(unsigned short port) {
         // convert to host endian
         clientHdr->type = ntohs(clientHdr->type);
         clientHdr->length = ntohs(clientHdr->length);
-        printf("banana\n");
+  
         proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
         clientHello->proto = ntohs(clientHello->proto);
         
@@ -102,6 +102,8 @@ int handle_connection(unsigned short port) {
             if (clientHello->proto != PROTO_VER) {
                 handle_protocol_mismatch(clientFd, writeBuffer);
             }
+
+            // after receiving the hello request, 
 
             continue;
         }
