@@ -4,6 +4,7 @@
 #define STATUS_ERROR -1
 #define STATUS_SUCCESS 0
 #define MAX_CONTACTS 100
+#define BUFFER_SIZE 4096
 
 #define PROTO_VER 100
 

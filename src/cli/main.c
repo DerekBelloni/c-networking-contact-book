@@ -13,8 +13,8 @@
 
 int send_hello(int fd) {
     // need to create a buffer for the header
-    char writeBuffer[4096] = {0};
-    char readBuffer[4096] = {0};
+    char writeBuffer[BUFFER_SIZE] = {0};
+    char readBuffer[BUFFER_SIZE] = {0};
     // create the header
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
     hdr->type = MSG_HELLO_REQ;

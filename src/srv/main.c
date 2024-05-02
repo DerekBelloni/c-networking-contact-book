@@ -77,8 +77,8 @@ int handle_connection(unsigned short port) {
         }
      
         // create a buffer for the client header and data
-        char readBuffer[4096];
-        char writeBuffer[4096];
+        char readBuffer[BUFFER_SIZE];
+        char writeBuffer[BUFFER_SIZE];
         ssize_t bytesRead = read(clientFd, readBuffer, sizeof(readBuffer));
         if (bytesRead == -1) {
             perror("read");
@@ -86,27 +86,29 @@ int handle_connection(unsigned short port) {
             continue;
         }
 
-        // set a clientHdr and cast it to the buffer
-        proto_hdr_t *clientHdr = (proto_hdr_t *)readBuffer;
+        handle_client_fsm(&clientFd, &writeBuffer);
 
-        // convert to host endian
-        clientHdr->type = ntohs(clientHdr->type);
-        clientHdr->length = ntohs(clientHdr->length);
+        // // set a clientHdr and cast it to the buffer
+        // proto_hdr_t *clientHdr = (proto_hdr_t *)readBuffer;
+
+        // // convert to host endian
+        // clientHdr->type = ntohs(clientHdr->type);
+        // clientHdr->length = ntohs(clientHdr->length);
   
-        proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
-        clientHello->proto = ntohs(clientHello->proto);
+        // proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
+        // clientHello->proto = ntohs(clientHello->proto);
         
-        if (clientHdr->type == MSG_HELLO_REQ) {
-            printf("Hello message received!!!\n");
+        // if (clientHdr->type == MSG_HELLO_REQ) {
+        //     printf("Hello message received!!!\n");
             
-            if (clientHello->proto != PROTO_VER) {
-                handle_protocol_mismatch(clientFd, writeBuffer);
-            }
+        //     if (clientHello->proto != PROTO_VER) {
+        //         handle_protocol_mismatch(clientFd, writeBuffer);
+        //     }
 
-            // after receiving the hello request, 
+        //     // after receiving the hello request, 
 
-            continue;
-        }
+        //     continue;
+        // }
 
     }
     return 0;
