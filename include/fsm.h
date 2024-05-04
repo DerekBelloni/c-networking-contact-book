@@ -13,12 +13,12 @@ typedef enum {
 } state_e;
 
 typedef struct {
-    int clientFd;
+    int fd;
     state_e state;
     char buffer[BUFFER_SIZE];
 } clientstate_t;
 
-int handle_client_fsm(int *clientFd, char *writeBuffer, char *readBuffer);
-// int handle_protocol_mismatch();
+int handle_client_fsm(clientstate_t *client);
+int handle_protocol_mismatch(clientstate_t *client);
 
 #endif

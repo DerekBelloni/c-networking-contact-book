@@ -7,13 +7,25 @@
 
 #include "common.h"
 #include "parse.h"
+#include "fsm.h"
 
-int handle_client_fsm(int clientFd, char *writeBuffer, char *readBuffer) {
-    // proto_hdr_t *clientHdr = (proto_hdr_t *)readBuffer
-    printf("In fsm.c\n");
-    proto_hdr_t *clientHdr = (proto_hdr_t *)readBuffer;
 
-        // convert to host endian
+int handle_protocol_mismatch(clientstate_t *client) {
+    proto_hdr_t *errorHdr = (proto_hdr_t*)client->buffer;
+    errorHdr->type = htons(MSG_ERROR);
+    errorHdr->length = htons(1);
+    
+    error_resp *errorResp = (error_resp*)&errorHdr[1];
+    errorResp->errorType = htons(PROTOCOL_ERROR);
+
+    write(client->fd, client->buffer, sizeof(proto_hdr_t) + sizeof(error_resp));
+
+    return STATUS_SUCCESS;
+}
+
+int handle_client_fsm(clientstate_t *client) {
+    proto_hdr_t *clientHdr = (proto_hdr_t *)client->buffer;
+
     clientHdr->type = ntohs(clientHdr->type);
     clientHdr->length = ntohs(clientHdr->length);
   
@@ -21,13 +33,11 @@ int handle_client_fsm(int clientFd, char *writeBuffer, char *readBuffer) {
     clientHello->proto = ntohs(clientHello->proto);
         
     if (clientHdr->type == MSG_HELLO_REQ) {
-        printf("Hello message received!!!\n");
+        printf("Hello message received\n");
             
         if (clientHello->proto != PROTO_VER) {
-            // handle_protocol_mismatch(clientFd, writeBuffer);
-        }
-
-        // after receiving the hello request, 
+            handle_protocol_mismatch(client);
+        } 
     }
     return 0;
 }

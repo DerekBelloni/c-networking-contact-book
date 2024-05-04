@@ -23,21 +23,6 @@ int print_usage(char *argv[]) {
     return 1;
 }
 
-int handle_protocol_mismatch(int clientFd, char *writeBuffer) {
-    // create an error hdr from the writeBuffer
-    proto_hdr_t *errorHdr = (proto_hdr_t*)writeBuffer;
-    // use MSG_ERROR as the hdr type
-    errorHdr->type = htons(MSG_ERROR);
-    errorHdr->length = htons(1);
-    // use the error_type_e as the specific error type, place in the buffer after the header
-    error_resp *errorResp = (error_resp*)&errorHdr[1];
-    errorResp->errorType = htons(PROTOCOL_ERROR);
-
-    write(clientFd, writeBuffer, sizeof(proto_hdr_t) + sizeof(error_resp));
-
-    return STATUS_SUCCESS;
-}
-
 int handle_connection(unsigned short port) {
     struct sockaddr_in serverInfo = {0};
     struct sockaddr_in clientInfo = {0};
@@ -75,41 +60,22 @@ int handle_connection(unsigned short port) {
             close(fd);
             return -1;
         }
-     
-        // create a buffer for the client header and data
-        char readBuffer[BUFFER_SIZE];
-        char writeBuffer[BUFFER_SIZE];
-        ssize_t bytesRead = read(clientFd, readBuffer, sizeof(readBuffer));
+
+        clientstate_t *client = malloc(sizeof(clientstate_t));
+        client->state = STATE_NEW;
+        client->fd = clientFd;
+        memset(client->buffer, 0, BUFFER_SIZE);
+
+        ssize_t bytesRead = read(client->fd, client->buffer, sizeof(BUFFER_SIZE));
         if (bytesRead == -1) {
             perror("read");
             close(clientFd);
             continue;
         }
 
-        handle_client_fsm(&clientFd, writeBuffer, readBuffer);
+        handle_client_fsm(client);
 
-        // // set a clientHdr and cast it to the buffer
-        // proto_hdr_t *clientHdr = (proto_hdr_t *)readBuffer;
-
-        // // convert to host endian
-        // clientHdr->type = ntohs(clientHdr->type);
-        // clientHdr->length = ntohs(clientHdr->length);
-  
-        // proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
-        // clientHello->proto = ntohs(clientHello->proto);
-        
-        // if (clientHdr->type == MSG_HELLO_REQ) {
-        //     printf("Hello message received!!!\n");
-            
-        //     if (clientHello->proto != PROTO_VER) {
-        //         handle_protocol_mismatch(clientFd, writeBuffer);
-        //     }
-
-        //     // after receiving the hello request, 
-
-        //     continue;
-        // }
-
+        continue;
     }
     return 0;
 }

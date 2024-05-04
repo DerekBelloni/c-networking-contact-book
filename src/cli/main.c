@@ -11,26 +11,22 @@
 
 #include "common.h"
 
-int send_hello(int fd) {
-    // need to create a buffer for the header
+int send_request(int fd) {
     char writeBuffer[BUFFER_SIZE] = {0};
     char readBuffer[BUFFER_SIZE] = {0};
-    // create the header
+    
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
     hdr->type = MSG_HELLO_REQ;
     hdr->length = 1;
-    // set the protocol message to the buffer, after the header
+    
     proto_hello_req *hello = (proto_hello_req*)&hdr[1];
-    hello->proto = htons(82);
+    hello->proto = htons(PROTO_VER);
 
-    // convert to endian
     hdr->type = htons(hdr->type);
     hdr->length = htons(hdr->length);
     
-    // Write to the serve
     write(fd, writeBuffer, sizeof(proto_hdr_t) + sizeof(proto_hello_req));
     
-    // receive the response
     ssize_t bytesRead = read(fd, readBuffer, sizeof(readBuffer));
     if (bytesRead == -1) {
         perror("read");
@@ -42,12 +38,11 @@ int send_hello(int fd) {
     serverHdr->type = ntohs(serverHdr->type);
     serverHdr->length = ntohs(serverHdr->length);
 
-    // This shouls be its own method using a switch statement to handle different print statements for different types of errors
     if (serverHdr->type == MSG_ERROR) {
         printf("Error type received\n");
     }
 
-    // return success    
+     
     return STATUS_SUCCESS;
 }
 
@@ -96,6 +91,6 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    send_hello(fd);
+    send_request(fd);
     return 0;
 }
