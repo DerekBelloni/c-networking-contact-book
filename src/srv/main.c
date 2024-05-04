@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -14,6 +13,7 @@
 #include "common.h"
 #include "file.h"
 #include "parse.h"
+#include "fsm.h"
 
 int print_usage(char *argv[]) {
     printf("Usage: %s -p <filepath> -f <filename>\n", argv[0]);
@@ -86,7 +86,7 @@ int handle_connection(unsigned short port) {
             continue;
         }
 
-        handle_client_fsm(&clientFd, &writeBuffer);
+        handle_client_fsm(&clientFd, writeBuffer, readBuffer);
 
         // // set a clientHdr and cast it to the buffer
         // proto_hdr_t *clientHdr = (proto_hdr_t *)readBuffer;

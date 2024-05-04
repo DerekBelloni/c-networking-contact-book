@@ -18,4 +18,7 @@ typedef struct {
     char buffer[BUFFER_SIZE];
 } clientstate_t;
 
+int handle_client_fsm(int *clientFd, char *writeBuffer, char *readBuffer);
+// int handle_protocol_mismatch();
+
 #endif
