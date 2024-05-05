@@ -18,15 +18,17 @@ int send_request(int fd) {
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
     hdr->type = MSG_HELLO_REQ;
     hdr->length = 1;
-    
-    proto_hello_req *hello = (proto_hello_req*)&hdr[1];
-    hello->proto = htons(PROTO_VER);
-
     hdr->type = htons(hdr->type);
     hdr->length = htons(hdr->length);
     
-    write(fd, writeBuffer, sizeof(proto_hdr_t) + sizeof(proto_hello_req));
+    proto_hello_req *hello = (proto_hello_req*)&hdr[1];
+    printf("proto ver: %d\n", PROTO_VER);
+    hello->proto = htons(PROTO_VER);
+    printf("proto ver afte endian: %d\n", hello->proto);
+
     
+    write(fd, writeBuffer, sizeof(proto_hdr_t) + sizeof(proto_hello_req));
+
     ssize_t bytesRead = read(fd, readBuffer, sizeof(readBuffer));
     if (bytesRead == -1) {
         perror("read");
@@ -40,6 +42,8 @@ int send_request(int fd) {
 
     if (serverHdr->type == MSG_ERROR) {
         printf("Error type received\n");
+        close(fd);
+        return STATUS_ERROR;
     }
 
      
@@ -50,6 +54,7 @@ int main(int argc, char *argv[]) {
     int c;
     char *portarg = NULL;
     char *hostarg = NULL;
+    char *addString = NULL;
     unsigned short port = 0;
     struct sockaddr_in clientInfo = {0};
 
@@ -58,7 +63,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    while((c = getopt(argc, argv, "p:h:")) != -1) {
+    while((c = getopt(argc, argv, "p:h:a:")) != -1) {
         switch(c) {
             case 'h':
                 hostarg = optarg;
@@ -66,6 +71,10 @@ int main(int argc, char *argv[]) {
             case 'p':
                 portarg = optarg;
                 port = atoi(portarg);
+                break;
+            case 'a':
+                addString = optarg;
+                printf("Add string: %s\n", addString);
                 break;
             case '?':
                 printf("Unknown option -%c\n", c);

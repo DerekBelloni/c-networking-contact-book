@@ -31,12 +31,12 @@ typedef struct {
     uint16_t errorType;
 } error_resp;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint16_t type;
     uint16_t length;
 } proto_hdr_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint16_t proto;
 } proto_hello_req;
 

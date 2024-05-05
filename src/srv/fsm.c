@@ -31,13 +31,17 @@ int handle_client_fsm(clientstate_t *client) {
   
     proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
     clientHello->proto = ntohs(clientHello->proto);
-        
+
     if (clientHdr->type == MSG_HELLO_REQ) {
         printf("Hello message received\n");
             
         if (clientHello->proto != PROTO_VER) {
             handle_protocol_mismatch(client);
-        } 
+        }
+
+        client->state = STATE_HELLO;
     }
+
+
     return 0;
 }

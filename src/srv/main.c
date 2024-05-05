@@ -66,10 +66,11 @@ int handle_connection(unsigned short port) {
         client->fd = clientFd;
         memset(client->buffer, 0, BUFFER_SIZE);
 
-        ssize_t bytesRead = read(client->fd, client->buffer, sizeof(BUFFER_SIZE));
+        ssize_t bytesRead = read(client->fd, client->buffer, BUFFER_SIZE);
         if (bytesRead == -1) {
             perror("read");
             close(clientFd);
+            free(client);
             continue;
         }
 
