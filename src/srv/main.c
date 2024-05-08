@@ -24,6 +24,7 @@ int print_usage(char *argv[]) {
 }
 
 int handle_connection(unsigned short port) {
+
     struct sockaddr_in serverInfo = {0};
     struct sockaddr_in clientInfo = {0};
     socklen_t clientSize = sizeof(clientInfo);
@@ -57,7 +58,7 @@ int handle_connection(unsigned short port) {
        
         if (clientFd == -1) {
             perror("accept");
-            close(fd);
+            close(clientFd);
             return -1;
         }
 
@@ -73,10 +74,13 @@ int handle_connection(unsigned short port) {
             free(client);
             continue;
         }
-
-        handle_client_fsm(client);
-
-        continue;
+        int sum = 0;
+        sum++;
+        printf("sum: %d\n", sum);
+       if (handle_client_fsm(client) != STATUS_SUCCESS) {
+            printf("Error handling client fsm\n");
+            continue;
+       }
     }
     return 0;
 }

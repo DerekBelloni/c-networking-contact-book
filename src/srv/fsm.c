@@ -28,8 +28,8 @@ int handle_client_fsm(clientstate_t *client) {
 
     clientHdr->type = ntohs(clientHdr->type);
     clientHdr->length = ntohs(clientHdr->length);
-  
-    proto_hello_req *clientHello = (proto_hello_req*)((char *)clientHdr + sizeof(proto_hdr_t));
+    printf("Decoded header: type=%d, length=%d\n", clientHdr->type, clientHdr->length);
+    proto_req *clientHello = (proto_req*)((char *)clientHdr + sizeof(proto_hdr_t));
     clientHello->proto = ntohs(clientHello->proto);
 
     if (clientHdr->type == MSG_HELLO_REQ) {
@@ -40,8 +40,19 @@ int handle_client_fsm(clientstate_t *client) {
         }
 
         client->state = STATE_HELLO;
+
+        proto_hdr_t *responseHdr = (proto_hdr_t*)client->buffer;
+        clientHdr->type = htons(MSG_HELLO_RESP);
+        clientHdr->length = htons(0);
+
+        write(client->fd, client->buffer, sizeof(proto_hdr_t));
+        // return STATUS_SUCCESS;
     }
+    
 
-
-    return 0;
+    printf("client header type: %d\n", clientHdr->type);
+    if (clientHdr->type == MSG_CONTACT_ADD_REQ) {
+        printf("add contact request received!\n");
+    }
+    return STATUS_SUCCESS;
 }

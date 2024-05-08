@@ -38,6 +38,12 @@ typedef struct __attribute__((packed)) {
 
 typedef struct __attribute__((packed)) {
     uint16_t proto;
-} proto_hello_req;
+} proto_req;
+
+typedef struct __attribute((packed)) {
+    uint8_t data[1024];
+} proto_add_req;
+
+
 
 #endif
