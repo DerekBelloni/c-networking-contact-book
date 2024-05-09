@@ -52,7 +52,7 @@ int handle_connection(unsigned short port) {
     } 
 
     printf("Server listening on port: %d\n", port);
-
+    int sum = 0;
     while (1) {
         int clientFd = accept(fd, (struct sockaddr*)&clientInfo, &clientSize);
        
@@ -61,26 +61,29 @@ int handle_connection(unsigned short port) {
             close(clientFd);
             return -1;
         }
+        printf("Client connected from %s\n", inet_ntoa(clientInfo.sin_addr));
 
-        clientstate_t *client = malloc(sizeof(clientstate_t));
-        client->state = STATE_NEW;
-        client->fd = clientFd;
-        memset(client->buffer, 0, BUFFER_SIZE);
+        while(1) {
+            clientstate_t *client = malloc(sizeof(clientstate_t));
+            client->state = STATE_NEW;
+            client->fd = clientFd;
+            memset(client->buffer, 0, BUFFER_SIZE);
 
-        ssize_t bytesRead = read(client->fd, client->buffer, BUFFER_SIZE);
-        if (bytesRead == -1) {
-            perror("read");
-            close(clientFd);
-            free(client);
-            continue;
+            ssize_t bytesRead = read(client->fd, client->buffer, BUFFER_SIZE);
+            if (bytesRead == -1) {
+                perror("read");
+                close(clientFd);
+                free(client);
+                continue;
+            }
+        
+            sum++;
+            printf("sum: %d\n", sum);
+            if (handle_client_fsm(client) != STATUS_SUCCESS) {
+                    printf("Error handling client fsm\n");
+                    continue;
+            }
         }
-        int sum = 0;
-        sum++;
-        printf("sum: %d\n", sum);
-       if (handle_client_fsm(client) != STATUS_SUCCESS) {
-            printf("Error handling client fsm\n");
-            continue;
-       }
     }
     return 0;
 }

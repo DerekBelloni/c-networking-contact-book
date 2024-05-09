@@ -18,8 +18,6 @@ int send_add_req(char *addString, int fd) {
     
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
     hdr->type = MSG_CONTACT_ADD_REQ;
-    printf("header type: %d\n", hdr->type);
-    // hdr->length = 1;
     hdr->length = sizeof(proto_req) + sizeof(proto_add_req);
     hdr->type = htons(hdr->type);
     hdr->length = htons(hdr->length);
@@ -36,7 +34,6 @@ int send_add_req(char *addString, int fd) {
     memset(contact, 0, sizeof(proto_add_req));
     snprintf((char *)contact->data, sizeof(contact->data), "%s", addString);
     memcpy(&add[1], contact, sizeof(proto_add_req));
-    printf("banana\n");
     write(fd, writeBuffer, sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
     free(contact);
 
@@ -49,7 +46,7 @@ int send_request(int fd) {
     
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
     hdr->type = MSG_HELLO_REQ;
-    hdr->length = 1;
+    hdr->length = sizeof(proto_req);
     hdr->type = htons(hdr->type);
     hdr->length = htons(hdr->length);
     
@@ -87,33 +84,34 @@ int main(int argc, char *argv[]) {
     int c;
     char *portarg = NULL;
     char *hostarg = NULL;
-    char *addString = NULL;
     unsigned short port = 0;
     struct sockaddr_in clientInfo = {0};
+    int initialRequest = 0;  // Flag to determine if initial request should be sent
 
     if (argc < 2) {
-        printf("Usage: %s <ip and port of the host>", argv[0]);
+        printf("Usage: %s -h <host> -p <port>\n", argv[0]);
         return 0;
     }
 
-    while((c = getopt(argc, argv, "p:h:a:")) != -1) {
-        switch(c) {
+    while ((c = getopt(argc, argv, "h:p:")) != -1) {
+        switch (c) {
             case 'h':
                 hostarg = optarg;
                 break;
             case 'p':
                 portarg = optarg;
                 port = atoi(portarg);
-                break;
-            case 'a':
-                addString = optarg;
+                initialRequest = 1;  // Set flag if port is specified
                 break;
             case '?':
-                printf("Unknown option -%c\n", c);
-                break;
-            default:
+                printf("Unknown option -%c\n", optopt);
                 return -1;
         }
+    }
+
+    if (hostarg == NULL || portarg == NULL) {
+        printf("Host and port must be specified.\n");
+        return -1;
     }
 
     clientInfo.sin_family = AF_INET;
@@ -132,19 +130,35 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    if (send_request(fd) != STATUS_SUCCESS) {
-        printf("Error establishing a hello request\n");
-        return STATUS_ERROR;
+    printf("Connected to %s:%d\n", hostarg, port);
+
+    // Send initial request if appropriate
+    if (initialRequest) {
+        if (send_request(fd) != STATUS_SUCCESS) {
+            printf("Error establishing a hello request\n");
+            close(fd);
+            return -1;
+        }
     }
 
-    if (addString != NULL) {
-        send_add_req(addString, fd);
-        // if (send_add_req(addString, fd) != STATUS_SUCCESS) {
-        //     printf("Error adding new contact");
-        //     return STATUS_ERROR;
-        // }
-     }
+    printf("Enter commands (e.g., '-a name,email,phone'):\n");
 
-    // TODO: Add optargs for asking the user if they are done when the end is reached
+    char input[1024];
+    while (fgets(input, sizeof(input), stdin)) {
+        input[strcspn(input, "\n")] = 0; // Strip newline character
+
+        if (strncmp(input, "-a ", 3) == 0) {
+            char *addString = input + 3;  // Point to the contact info part
+            printf("add string: %s\n", addString);
+            if (send_add_req(addString, fd) != STATUS_SUCCESS) {
+                printf("Error adding new contact\n");
+                break;
+            }
+        } else {
+            printf("Unknown command or format error. Available commands are '-a [contact info]'.\n");
+        }
+    }
+
+    close(fd);
     return 0;
 }
