@@ -48,8 +48,18 @@ int handle_client_fsm(clientstate_t *client) {
         write(client->fd, client->buffer, sizeof(proto_hdr_t));
     }
     
-    if (clientHdr->type == MSG_CONTACT_ADD_REQ) {
+    client->state = STATE_MSG;
+    
+    if (clientHdr->type == MSG_CONTACT_ADD_REQ && client->state == STATE_MSG) {
         printf("add contact request received!\n");
+
+         if (clientHello->proto != PROTO_VER) {
+            handle_protocol_mismatch(client);
+        }
+
+        proto_add_req *addString = (proto_add_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
+        printf("Add string from client: %s\n", addString->data);
+
     }
     return STATUS_SUCCESS;
 }
