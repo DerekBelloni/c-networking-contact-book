@@ -4,7 +4,6 @@
 #define STATUS_ERROR -1
 #define STATUS_SUCCESS 0
 #define MAX_CONTACTS 100
-// #define BUFFER_SIZE 10000
 #define BUFFER_SIZE (sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req) + sizeof(proto_file_path))
 
 #define FILE_PATH_MAX 1024

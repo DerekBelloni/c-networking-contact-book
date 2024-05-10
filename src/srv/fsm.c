@@ -8,6 +8,7 @@
 #include "common.h"
 #include "parse.h"
 #include "fsm.h"
+#include "file.h"
 
 
 int handle_protocol_mismatch(clientstate_t *client) {
@@ -61,6 +62,24 @@ int handle_client_fsm(clientstate_t *client) {
         proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
         printf("Add string from client: %s\n", addString->data);
         printf("File path from the client: %s\n", path->path);
+        int count = 0;
+        FILE *fp;
+        struct contact_t *contacts = NULL;
+        char *file_mode = strdup("r+");
+        if((char*)path->path) {
+            open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
+            if (fp == NULL) {
+                printf("Unable to open file.\n");
+                fclose(fp);
+                return STATUS_ERROR;
+            }
+        }
+
+        if (add_contact(&contacts, (char*)addString, (char*)path->path, &fp, &count) != STATUS_SUCCESS) {
+            printf("Error adding new contact.\n");
+            fclose(fp);
+            return STATUS_ERROR;
+        }
 
     }
     return STATUS_SUCCESS;
