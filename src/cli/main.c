@@ -11,31 +11,43 @@
 
 #include "common.h"
 
-int send_add_req(char *addString, int fd) {
-    printf("Add string in send_add_req: %s\n", addString);
+int process_command() {
+
+   return 0; 
+}
+
+int send_add_req(char *addString, char *filepath, int fd) {
     char writeBuffer[BUFFER_SIZE] = {0};
-    char readBuffer[BUFFER_SIZE] = {0};
-    
+
+    // Header
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
-    hdr->type = MSG_CONTACT_ADD_REQ;
-    hdr->length = sizeof(proto_req) + sizeof(proto_add_req);
-    hdr->type = htons(hdr->type);
-    hdr->length = htons(hdr->length);
+    hdr->type = htons(MSG_CONTACT_ADD_REQ);
+    hdr->length = htons(sizeof(proto_req) + sizeof(proto_add_req) + sizeof(proto_file_path));
 
-    proto_req *add = (proto_req*)&hdr[1];
-    add->proto = htons(PROTO_VER);
+    // Request
+    proto_req *req = (proto_req*)(hdr + 1);
+    req->proto = htons(PROTO_VER);
 
-    proto_add_req *contact = malloc(sizeof(proto_add_req));
-    if (contact == NULL) {
-        perror("malloc");
-        STATUS_ERROR;
+    // Contact data
+    proto_add_req *contact = (proto_add_req*)(req + 1);
+    snprintf((char*)contact->data, sizeof(contact->data), "%s", addString);
+
+    // File path
+    proto_file_path *path = (proto_file_path*)(contact + 1);
+    snprintf((char*)path->path, sizeof(path->path), "%s", filepath);
+
+    // Debug: Print calculated addresses and their expected sizes
+    printf("Header starts at: %p, size: %zu\n", (void*)hdr, sizeof(proto_hdr_t));
+    printf("Request starts at: %p, size: %zu\n", (void*)req, sizeof(proto_req));
+    printf("Contact data starts at: %p, size: %zu\n", (void*)contact, sizeof(proto_add_req));
+    printf("File path starts at: %p, size: %zu\n", (void*)path, sizeof(proto_file_path));
+
+    // Send the buffer
+    ssize_t bytes_written = write(fd, writeBuffer, ntohs(hdr->length) + sizeof(proto_hdr_t));
+    if (bytes_written < 0) {
+        perror("write failed");
+        return -1;
     }
-
-    memset(contact, 0, sizeof(proto_add_req));
-    snprintf((char *)contact->data, sizeof(contact->data), "%s", addString);
-    memcpy(&add[1], contact, sizeof(proto_add_req));
-    write(fd, writeBuffer, sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
-    free(contact);
 
     return 0;
 }
@@ -84,6 +96,7 @@ int main(int argc, char *argv[]) {
     int c;
     char *portarg = NULL;
     char *hostarg = NULL;
+    char *filepath = NULL;
     unsigned short port = 0;
     struct sockaddr_in clientInfo = {0};
     int initialRequest = 0;  // Flag to determine if initial request should be sent
@@ -93,7 +106,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    while ((c = getopt(argc, argv, "h:p:")) != -1) {
+    while ((c = getopt(argc, argv, "h:p:f:")) != -1) {
         switch (c) {
             case 'h':
                 hostarg = optarg;
@@ -102,6 +115,9 @@ int main(int argc, char *argv[]) {
                 portarg = optarg;
                 port = atoi(portarg);
                 initialRequest = 1;  // Set flag if port is specified
+                break;
+            case 'f':
+                filepath = optarg;
                 break;
             case '?':
                 printf("Unknown option -%c\n", optopt);
@@ -132,7 +148,6 @@ int main(int argc, char *argv[]) {
 
     printf("Connected to %s:%d\n", hostarg, port);
 
-    // Send initial request if appropriate
     if (initialRequest) {
         if (send_request(fd) != STATUS_SUCCESS) {
             printf("Error establishing a hello request\n");
@@ -145,12 +160,12 @@ int main(int argc, char *argv[]) {
 
     char input[1024];
     while (fgets(input, sizeof(input), stdin)) {
-        input[strcspn(input, "\n")] = 0; // Strip newline character
+        input[strcspn(input, "\n")] = 0; 
 
         if (strncmp(input, "-a ", 3) == 0) {
-            char *addString = input + 3;  // Point to the contact info part
+            char *addString = input + 3; 
             printf("add string: %s\n", addString);
-            if (send_add_req(addString, fd) != STATUS_SUCCESS) {
+            if (send_add_req(addString, filepath, fd) != STATUS_SUCCESS) {
                 printf("Error adding new contact\n");
                 break;
             }

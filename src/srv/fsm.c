@@ -58,7 +58,9 @@ int handle_client_fsm(clientstate_t *client) {
         }
 
         proto_add_req *addString = (proto_add_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
+        proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
         printf("Add string from client: %s\n", addString->data);
+        printf("File path from the client: %s\n", path->path);
 
     }
     return STATUS_SUCCESS;
