@@ -52,7 +52,7 @@ int handle_connection(unsigned short port) {
     } 
 
     printf("Server listening on port: %d\n", port);
-    int sum = 0;
+   
     while (1) {
         int clientFd = accept(fd, (struct sockaddr*)&clientInfo, &clientSize);
        
@@ -77,8 +77,6 @@ int handle_connection(unsigned short port) {
                 continue;
             }
         
-            sum++;
-            printf("sum: %d\n", sum);
             if (handle_client_fsm(client) != STATUS_SUCCESS) {
                     printf("Error handling client fsm\n");
                     continue;
@@ -154,13 +152,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (addString) {
-       if (add_contact(&contacts, addString, filepath, &fp, &count) != STATUS_SUCCESS) {
-            printf("Error adding new contact.\n");
-            fclose(fp);
-            return STATUS_ERROR;
-       }
-    }
+    // if (addString) {
+    //    if (add_contact(&contacts, addString, filepath, &fp, &count) != STATUS_SUCCESS) {
+    //         printf("Error adding new contact.\n");
+    //         fclose(fp);
+    //         return STATUS_ERROR;
+    //    }
+    // }
 
     if (updateString) {
         if (update_contact(&contacts, updateString, filepath, &fp, &count) != STATUS_SUCCESS) {

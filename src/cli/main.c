@@ -16,8 +16,14 @@ int process_command() {
    return 0; 
 }
 
+int send_update_req(char *updateString, char *filepath, int fd) {
+    char writeBuffer[BUFFER_SIZE] = {0};
+    char readBuffer[BUFFER_SIZE] = {0};
+}
+
 int send_add_req(char *addString, char *filepath, int fd) {
     char writeBuffer[BUFFER_SIZE] = {0};
+    char readBuffer[BUFFER_SIZE] = {0};
 
     // Header
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
@@ -47,6 +53,28 @@ int send_add_req(char *addString, char *filepath, int fd) {
     if (bytes_written < 0) {
         perror("write failed");
         return -1;
+    }
+
+    ssize_t bytesRead = read(fd, readBuffer, sizeof(readBuffer));
+    if (bytesRead == -1) {
+        perror("read");
+        exit(1);
+    }
+
+    proto_hdr_t *serverHdr = (proto_hdr_t*)readBuffer;
+
+    serverHdr->type = ntohs(serverHdr->type);
+    serverHdr->length = ntohs(serverHdr->length);
+
+    if (serverHdr->type == MSG_ERROR) {
+        printf("Error type received\n");
+        close(fd);
+        return STATUS_ERROR;
+    }
+    printf("server header type: %d\n", serverHdr->type);
+    if (serverHdr->type == MSG_CONTACT_ADD_RESP) {
+        printf("Server add contact response received\n");
+        return STATUS_SUCCESS;
     }
 
     return 0;
@@ -85,7 +113,7 @@ int send_request(int fd) {
     }
 
     if (serverHdr->type == MSG_HELLO_RESP) {
-        printf("Relax, breath, its ok\n");
+        printf("Server hello response received\n");
         return STATUS_SUCCESS;
     }
      
@@ -157,6 +185,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Enter commands (e.g., '-a name,email,phone'):\n");
+    printf("Enter commands (e.g., '-u field to replace,new value,old value'):\n");
 
     char input[1024];
     while (fgets(input, sizeof(input), stdin)) {
@@ -169,6 +198,9 @@ int main(int argc, char *argv[]) {
                 printf("Error adding new contact\n");
                 break;
             }
+        } else if (strncmp(input, "-u ", 3) == 0) {
+            char *updateString = input + 3;
+            printf("update string: %s\n", updateString);
         } else {
             printf("Unknown command or format error. Available commands are '-a [contact info]'.\n");
         }

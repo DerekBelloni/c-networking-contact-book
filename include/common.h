@@ -7,6 +7,7 @@
 #define BUFFER_SIZE (sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req) + sizeof(proto_file_path))
 
 #define FILE_PATH_MAX 1024
+#define FILE_DATA_MAX 1024
 
 #define PROTO_VER 100
 
@@ -43,7 +44,7 @@ typedef struct __attribute__((packed)) {
 } proto_req;
 
 typedef struct __attribute((packed)) {
-    uint8_t data[1024];
+    uint8_t data[FILE_DATA_MAX];
 } proto_add_req;
 
 typedef struct __attribute((packed)) {
