@@ -48,6 +48,10 @@ typedef struct __attribute((packed)) {
 } proto_add_req;
 
 typedef struct __attribute((packed)) {
+    uint8_t data[FILE_DATA_MAX];
+} proto_update_req;
+
+typedef struct __attribute((packed)) {
     uint8_t path[FILE_PATH_MAX];
 } proto_file_path;
 

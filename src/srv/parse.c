@@ -58,6 +58,7 @@ int add_contact(struct contact_t **contacts, char *addstring, char *filepath, FI
 }
 
 int update_contact(struct contact_t **contacts, char *updateString, char *filepath, FILE **fp, int *count) {
+    printf("in parse\n");
     char *field, *replacement, *toBeReplaced;
     char *input = strdup(updateString);
     char *token;
@@ -77,7 +78,9 @@ int update_contact(struct contact_t **contacts, char *updateString, char *filepa
     if (token != NULL && token[0] != '\0') {
         toBeReplaced = strdup(token);
     }
-
+    printf("field: %s\n", field);
+    printf("replacement: %s\n", replacement);
+    printf("to be replaced: %s\n", toBeReplaced);
     for (i = 0; i < (*count); i++) {
         if (strcmp(field, "name") == 0) {
             if (strcmp((*contacts)[i].name, toBeReplaced) == 0) {
