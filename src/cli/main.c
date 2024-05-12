@@ -16,6 +16,57 @@ int process_command() {
    return 0; 
 }
 
+int send_remove_req(char *removeString, char *filepath, int fd) {
+    char writeBuffer[BUFFER_SIZE] = {0};
+    char readBuffer[BUFFER_SIZE] = {0};
+
+    // Header
+    proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
+    hdr->type = htons(MSG_CONTACT_DEL_REQ);
+    hdr->length = htons(sizeof(proto_req) + sizeof(proto_remove_req) + sizeof(proto_file_path));
+
+    // Request
+    proto_req *req = (proto_req*)(hdr + 1);
+    req->proto = htons(PROTO_VER);
+
+    // Remove contact data
+    proto_remove_req *remove = (proto_remove_req*)(req + 1);
+    snprintf((char*)remove->data, sizeof(remove->data), "%s", removeString);
+
+    proto_file_path *path = (proto_file_path*)(remove + 1);
+    snprintf((char*)path->path, sizeof(path->path), "%s", filepath);
+
+    ssize_t bytesWritten = write(fd, writeBuffer, ntohs(hdr->length) + sizeof(proto_hdr_t));
+    if (bytesWritten < 0) {
+        perror("write failed");
+        return STATUS_ERROR;
+    }
+
+    ssize_t bytesRead = read(fd, readBuffer, sizeof(readBuffer));
+    if (bytesRead == -1) {
+        perror("read");
+        exit(1);
+    }
+
+    proto_hdr_t *serverHdr = (proto_hdr_t*)readBuffer;
+
+    serverHdr->type = ntohs(serverHdr->type);
+    serverHdr->length = htons(serverHdr->length);
+
+    if (serverHdr->type == MSG_ERROR) {
+        printf("Error type received\n");
+        close(fd);
+        return STATUS_ERROR;
+    }
+
+    if (serverHdr->type == MSG_CONTACT_DEL_RESP) {
+        printf("Server remove contact response received\n");
+        return STATUS_SUCCESS;
+    }
+
+    return 0;
+}
+
 int send_update_req(char *updateString, char *filepath, int fd) {
     char writeBuffer[BUFFER_SIZE] = {0};
     char readBuffer[BUFFER_SIZE] = {0};
@@ -200,8 +251,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (hostarg == NULL || portarg == NULL) {
-        printf("Host and port must be specified.\n");
+    if (hostarg == NULL || portarg == NULL || filepath == NULL) {
+        printf("Host, port and file path must be specified.\n");
         return -1;
     }
 
@@ -249,7 +300,14 @@ int main(int argc, char *argv[]) {
             char *updateString = input + 3;
             printf("update string: %s\n", updateString);
             if (send_update_req(updateString, filepath, fd) != STATUS_SUCCESS) {
-                printf("Error updating contacts\n");
+                printf("Error updating contact.\n");
+                break;
+            }
+        } else if (strncmp(input, "-r ", 3) == 0) {
+            char *removeString = input + 3;
+            printf("remove string: %s\n", removeString);
+            if (send_remove_req(removeString, filepath, fd) != STATUS_SUCCESS) {
+                printf("Error removing contact.\n");
                 break;
             }
         } else {

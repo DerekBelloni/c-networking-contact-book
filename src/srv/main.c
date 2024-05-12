@@ -160,29 +160,29 @@ int main(int argc, char *argv[]) {
     //    }
     // }
 
-    if (updateString) {
-        if (update_contact(&contacts, updateString, filepath, &fp, &count) != STATUS_SUCCESS) {
-            printf("Error updating contact.\n");
-            fclose(fp);
-            return STATUS_ERROR;
-        }
-    }
+    // if (updateString) {
+    //     if (update_contact(&contacts, updateString, filepath, &fp, &count) != STATUS_SUCCESS) {
+    //         printf("Error updating contact.\n");
+    //         fclose(fp);
+    //         return STATUS_ERROR;
+    //     }
+    // }
 
-    if (removeString) {
-        if (remove_contact(&contacts, removeString, filepath, &fp, &count) != STATUS_SUCCESS) {
-            printf("Error removing contact.\n");
-            fclose(fp);
-            return STATUS_ERROR;
-        }
-    } 
+    // if (removeString) {
+    //     if (remove_contact(&contacts, removeString, filepath, &fp, &count) != STATUS_SUCCESS) {
+    //         printf("Error removing contact.\n");
+    //         fclose(fp);
+    //         return STATUS_ERROR;
+    //     }
+    // } 
 
-    if (listContacts) {
-        if (list_contacts(&contacts, &fp, &count) != STATUS_SUCCESS) {
-            printf("Error listing contacts.\n");
-            fclose(fp);
-            return STATUS_ERROR;
-        }
-    }
+    // if (listContacts) {
+    //     if (list_contacts(&contacts, &fp, &count) != STATUS_SUCCESS) {
+    //         printf("Error listing contacts.\n");
+    //         fclose(fp);
+    //         return STATUS_ERROR;
+    //     }
+    // }
  
     handle_connection(port);
 

@@ -114,18 +114,53 @@ int handle_client_fsm(clientstate_t *client) {
                     return STATUS_ERROR;
                 }
             }
-            printf("count is updated: %d\n", count);
 
             if (update_contact(&contacts, (char*)updateString, (char*)path->path, &fp, &count) != STATUS_SUCCESS) {
                 printf("Error updating contact\n");
                 fclose(fp);
                 return STATUS_ERROR;
-            } else {
-                printf("status success returned\n");
             }
-            printf("after calling update on contact\n");
+
+            
             proto_hdr_t *responseHdr = (proto_hdr_t*)client->buffer;
             responseHdr->type = htons(MSG_CONTACT_UPDATE_RESP);
+            responseHdr->length = htons(0);
+
+            write(client->fd, responseHdr, sizeof(proto_hdr_t));
+            memset(responseHdr, 0, sizeof(proto_hdr_t));
+        }
+
+        if (clientHdr->type == MSG_CONTACT_DEL_REQ) {
+            printf("delete contact request received!\n");
+
+            if (clientHello->proto != PROTO_VER) {
+                handle_protocol_mismatch(client);
+            }
+
+            proto_remove_req *removeString = (proto_remove_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
+            proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_update_req));
+
+            int count = 0;
+            FILE *fp;
+            struct contact_t *contacts = NULL;
+            char *file_mode = strdup("r+");
+            if((char*)path->path) {
+                open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
+                if (fp == NULL) {
+                    printf("Unable to open file.\n");
+                    fclose(fp);
+                    return STATUS_ERROR;
+                }
+            }
+
+            if (remove_contact(&contacts, (char*)removeString, (char*)path->path, &fp, &count) != STATUS_SUCCESS) {
+                printf("Error removing contact\n");
+                fclose(fp);
+                return STATUS_ERROR;
+            }
+
+            proto_hdr_t *responseHdr = (proto_hdr_t*)client->buffer;
+            responseHdr->type = htons(MSG_CONTACT_DEL_RESP);
             responseHdr->length = htons(0);
 
             write(client->fd, responseHdr, sizeof(proto_hdr_t));
