@@ -16,6 +16,32 @@ int process_command() {
    return 0; 
 }
 
+int send_list_req(char *filepath, int fd) {
+    char writeBuffer[BUFFER_SIZE] = {0};
+    char readBuffer[BUFFER_SIZE] = {0};
+
+    // Header
+    proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
+    hdr->type = htons(MSG_CONTACT_LIST_REQ);
+    hdr->length = htons(sizeof(proto_req) + sizeof(proto_file_path));
+
+    // Protocol Version
+    proto_req *req = (proto_req*)(hdr + 1);
+    req->proto = htons(PROTO_VER);
+
+    // File path
+    proto_file_path *path = (proto_file_path*)(req + 1);
+    snprintf((char*)path->path, sizeof(path->path), "%s", filepath);
+
+    ssize_t bytesWritten = write(fd, writeBuffer, ntohs(hdr->length) + sizeof(proto_hdr_t));
+    if (bytesWritten < 0) {
+        perror("write failed");
+        return STATUS_ERROR;
+    }
+
+    return 0;
+}
+
 int send_remove_req(char *removeString, char *filepath, int fd) {
     char writeBuffer[BUFFER_SIZE] = {0};
     char readBuffer[BUFFER_SIZE] = {0};
@@ -145,9 +171,9 @@ int send_add_req(char *addString, char *filepath, int fd) {
     printf("Request starts at: %p, size: %zu\n", (void*)req, sizeof(proto_req));
     printf("Contact data starts at: %p, size: %zu\n", (void*)contact, sizeof(proto_add_req));
     printf("File path starts at: %p, size: %zu\n", (void*)path, sizeof(proto_file_path));
-
+    printf("path before wtire: %s\n", path->path);
     // Send the buffer
-    ssize_t bytes_written = write(fd, writeBuffer, hdr->length + sizeof(proto_hdr_t));
+    ssize_t bytes_written = write(fd, writeBuffer, ntohs(hdr->length) + sizeof(proto_hdr_t));
     if (bytes_written < 0) {
         perror("write failed");
         return STATUS_ERROR;

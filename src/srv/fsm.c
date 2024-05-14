@@ -63,10 +63,11 @@ int handle_client_fsm(clientstate_t *client) {
 
             proto_add_req *addString = (proto_add_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
             proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
-
+            printf("file path: %s\n", path->path);
             int count = 0;
             FILE *fp;
-            struct contact_t *contacts = NULL;
+            // struct contact_t *contacts = NULL;
+            contact_t *contacts = NULL;
             char *file_mode = strdup("r+");
             if((char*)path->path) {
                 open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
@@ -101,10 +102,11 @@ int handle_client_fsm(clientstate_t *client) {
             
             proto_update_req *updateString = (proto_update_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
             proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_update_req));
-
+            printf("file path: %s\n", path->path);
             int count = 0;
             FILE *fp;
-            struct contact_t *contacts = NULL;
+            // struct contact_t *contacts = NULL;
+            contact_t *contacts = NULL;
             char *file_mode = strdup("r+");
             if((char*)path->path) {
                 open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
@@ -142,7 +144,8 @@ int handle_client_fsm(clientstate_t *client) {
 
             int count = 0;
             FILE *fp;
-            struct contact_t *contacts = NULL;
+            // struct contact_t *contacts = NULL;
+            contact_t *contacts = NULL;
             char *file_mode = strdup("r+");
             if((char*)path->path) {
                 open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);

@@ -76,6 +76,12 @@ int handle_connection(unsigned short port) {
                 free(client);
                 continue;
             }
+
+            // printf("Buffer received: ");
+            // for(int i = 0; i < bytesRead; i++) {
+            //     printf("%02x ", (unsigned char)client->buffer[i]);
+            // }
+            // printf("\n");
         
             if (handle_client_fsm(client) != STATUS_SUCCESS) {
                     printf("Error handling client fsm\n");
@@ -101,7 +107,8 @@ int main(int argc, char *argv[]) {
     bool newFile = false;
     unsigned short port = 0;
 
-    struct contact_t *contacts = NULL;
+    // struct contact_t *contacts = NULL;
+    contact_t *contacts = NULL;
 
     while ((c = getopt(argc, argv, "nf:p:")) != -1) {
         switch (c) {
