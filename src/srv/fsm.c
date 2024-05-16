@@ -174,6 +174,12 @@ int handle_client_fsm(clientstate_t *client) {
                 handle_protocol_mismatch(client);
             }
 
+            contact_list_t *contact_list = malloc(sizeof(contact_list_t));
+            if (contact_list == NULL) {
+                perror("malloc failed");
+                return STATUS_ERROR;
+            }
+
             proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
             int count = 0;
             FILE *fp;
@@ -188,7 +194,44 @@ int handle_client_fsm(clientstate_t *client) {
                 }
             }
 
-            
+            contact_list->count = count;
+
+            for (int i = 0; i < count && i < MAX_CONTACTS; i++) {
+                strncpy(contact_list->contacts[i].name, contacts[i].name, MAX_FIELD_LENGTH - 1);
+                contact_list->contacts[i].name[MAX_FIELD_LENGTH - 1] = '\0';
+               
+                strncpy(contact_list->contacts[i].email, contacts[i].email, MAX_FIELD_LENGTH - 1);
+                contact_list->contacts[i].email[MAX_FIELD_LENGTH - 1] = '\0';
+               
+                strncpy(contact_list->contacts[i].phoneNbr, contacts[i].phoneNbr, MAX_FIELD_LENGTH - 1);
+                contact_list->contacts[i].phoneNbr[MAX_FIELD_LENGTH - 1] = '\0';
+            }
+
+            printf("Server side contacts:\n");
+            for (int i = 0; i < contact_list->count; i++) {
+                printf("Contact %d:\n", i + 1);
+                printf("  Name: %s\n", contact_list->contacts[i].name);
+                printf("  Email: %s\n", contact_list->contacts[i].email);
+                printf("  Phone Number: %s\n", contact_list->contacts[i].phoneNbr);
+            }
+
+            fclose(fp);
+
+            proto_hdr_t *responseHdr = (proto_hdr_t*)client->buffer;
+            responseHdr->type = htons(MSG_CONTACT_LIST_RESP);
+            responseHdr->length = htons(sizeof(contact_list_t));
+
+            memcpy(responseHdr + 1, contact_list, sizeof(contact_list_t));
+
+            ssize_t bytesWritten = write(client->fd, client->buffer, sizeof(proto_hdr_t) + sizeof(contact_list_t));
+            if (bytesWritten < 0) {
+                perror("write failed");
+                free(contact_list);
+                return STATUS_ERROR;
+            }
+
+            // Free the allocated memory for the contact list
+            free(contact_list); 
         }
     }
     

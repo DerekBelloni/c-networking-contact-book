@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #include "common.h"
+#include "parse.h"
 
 int process_command() {
 
@@ -19,7 +20,7 @@ int process_command() {
 int send_list_req(char *filepath, int fd) {
     printf("file path in in list req, client: %s\n", filepath);
     char writeBuffer[BUFFER_SIZE] = {0};
-    char readBuffer[BUFFER_SIZE] = {0};
+    char readBuffer[LIST_BUFFER_SIZE] = {0};
 
     // Header
     proto_hdr_t *hdr = (proto_hdr_t*)writeBuffer;
@@ -40,6 +41,28 @@ int send_list_req(char *filepath, int fd) {
         return STATUS_ERROR;
     }
 
+    ssize_t bytesRead = read(fd, readBuffer, sizeof(readBuffer));
+    if (bytesRead == -1) {
+        perror("read failed");
+        return STATUS_ERROR;
+    }
+
+    proto_hdr_t *serverHdr = (proto_hdr_t*)readBuffer;
+
+    printf("server hdr type: %d\n", ntohs(serverHdr->type));
+
+    contact_list_t *contact_list = malloc(sizeof(contact_list_t));
+    memcpy(contact_list, serverHdr + 1, sizeof(contact_list_t));
+
+    printf("number of contacts: %d\n", contact_list->count);
+    for (int i = 0; i < contact_list->count; i++) {
+        printf("Contact %d:\n", i + 1);
+        printf("  Name: %s\n", contact_list->contacts[i].name);
+        printf("  Email: %s\n", contact_list->contacts[i].email);
+        printf("  Phone Number: %s\n", contact_list->contacts[i].phoneNbr);
+    }
+
+    free(contact_list);
     return 0;
 }
 

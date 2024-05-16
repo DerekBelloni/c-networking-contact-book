@@ -5,6 +5,7 @@
 #define STATUS_SUCCESS 0
 #define MAX_CONTACTS 100
 #define BUFFER_SIZE (sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req) + sizeof(proto_file_path))
+#define LIST_BUFFER_SIZE (sizeof(proto_hdr_t) + sizeof(contact_list_t))
 
 #define FILE_PATH_MAX 1024
 #define FILE_DATA_MAX 1024
