@@ -25,7 +25,6 @@ void create_contact_file(char *filepath, FILE **fp) {
     }
 }
 
-// void open_contact_file(char *filepath, struct contact_t **contacts, FILE **fp, int *count, char *file_mode) {
 void open_contact_file(char *filepath, contact_t **contacts, FILE **fp, int *count, char *file_mode) {
     char line[MAX_LINE_LENGTH];
     int i = 0;
@@ -43,7 +42,6 @@ void open_contact_file(char *filepath, contact_t **contacts, FILE **fp, int *cou
         (*count)++;
     }
 
-    // *contacts = malloc((*count) * sizeof(struct contact_t));
     *contacts = malloc((*count) * sizeof(contact_t));
     if (*contacts == NULL) {
         perror("malloc");

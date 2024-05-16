@@ -77,12 +77,6 @@ int handle_connection(unsigned short port) {
                 continue;
             }
 
-            // printf("Buffer received: ");
-            // for(int i = 0; i < bytesRead; i++) {
-            //     printf("%02x ", (unsigned char)client->buffer[i]);
-            // }
-            // printf("\n");
-        
             if (handle_client_fsm(client) != STATUS_SUCCESS) {
                     printf("Error handling client fsm\n");
                     continue;
@@ -158,38 +152,6 @@ int main(int argc, char *argv[]) {
             return STATUS_ERROR;
         }
     }
-
-    // if (addString) {
-    //    if (add_contact(&contacts, addString, filepath, &fp, &count) != STATUS_SUCCESS) {
-    //         printf("Error adding new contact.\n");
-    //         fclose(fp);
-    //         return STATUS_ERROR;
-    //    }
-    // }
-
-    // if (updateString) {
-    //     if (update_contact(&contacts, updateString, filepath, &fp, &count) != STATUS_SUCCESS) {
-    //         printf("Error updating contact.\n");
-    //         fclose(fp);
-    //         return STATUS_ERROR;
-    //     }
-    // }
-
-    // if (removeString) {
-    //     if (remove_contact(&contacts, removeString, filepath, &fp, &count) != STATUS_SUCCESS) {
-    //         printf("Error removing contact.\n");
-    //         fclose(fp);
-    //         return STATUS_ERROR;
-    //     }
-    // } 
-
-    // if (listContacts) {
-    //     if (list_contacts(&contacts, &fp, &count) != STATUS_SUCCESS) {
-    //         printf("Error listing contacts.\n");
-    //         fclose(fp);
-    //         return STATUS_ERROR;
-    //     }
-    // }
  
     handle_connection(port);
 

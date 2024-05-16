@@ -10,7 +10,6 @@
 #define MAX_FIELD_LENGTH 256
 #define MAX_LINE_LENGTH 771 
 
-// int add_contact(struct contact_t **contacts, char *addstring, char *filepath, FILE **fp, int *count) {
 int add_contact(contact_t **contacts, char *addstring, char *filepath, FILE **fp, int *count) {
     char *name, *email, *phoneNbr;
     char *input = strdup(addstring);
@@ -33,7 +32,6 @@ int add_contact(contact_t **contacts, char *addstring, char *filepath, FILE **fp
 
     (*count)++;
 
-    // struct contact_t *temp = realloc(*contacts, *count * sizeof(struct contact_t));
     contact_t *temp = realloc(*contacts, *count * sizeof(contact_t));
     if (temp == NULL) {
         perror("Memory reallocation failed");
@@ -59,7 +57,6 @@ int add_contact(contact_t **contacts, char *addstring, char *filepath, FILE **fp
     return STATUS_SUCCESS;
 }
 
-// int update_contact(struct contact_t **contacts, char *updateString, char *filepath, FILE **fp, int *count) {
 int update_contact(contact_t **contacts, char *updateString, char *filepath, FILE **fp, int *count) {
     printf("in parse\n");
     char *field, *replacement, *toBeReplaced;
@@ -101,7 +98,6 @@ int update_contact(contact_t **contacts, char *updateString, char *filepath, FIL
         }
     }
 
-    // *contacts = realloc(*contacts, (*count) * sizeof(struct contact_t));
     *contacts = realloc(*contacts, (*count) * sizeof(contact_t));
     if (*contacts == NULL) {
         printf("Memory reallocation failed.\n");
@@ -123,7 +119,6 @@ int update_contact(contact_t **contacts, char *updateString, char *filepath, FIL
     return STATUS_SUCCESS;
 }
 
-// int remove_contact(struct contact_t **contacts, char *removeString, char *filepath, FILE **fp, int *count) {
 int remove_contact(contact_t **contacts, char *removeString, char *filepath, FILE **fp, int *count) {
     int i, j, removed;
 
@@ -146,7 +141,6 @@ int remove_contact(contact_t **contacts, char *removeString, char *filepath, FIL
     }
 
     if (removed) {
-        // *contacts = realloc(*contacts, (*count) * sizeof(struct contact_t));
         *contacts = realloc(*contacts, (*count) * sizeof(contact_t));
         if (*contacts == NULL) {
             printf("Memory reallocation failed.\n");
@@ -172,7 +166,6 @@ int remove_contact(contact_t **contacts, char *removeString, char *filepath, FIL
     return STATUS_ERROR;
 }
 
-// int list_contacts(struct contact_t **contacts, FILE **fp, int *count)
 int list_contacts(contact_t **contacts, FILE **fp, int *count)
 {
     int i = 0;

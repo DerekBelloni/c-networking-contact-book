@@ -17,6 +17,7 @@ int process_command() {
 }
 
 int send_list_req(char *filepath, int fd) {
+    printf("file path in in list req, client: %s\n", filepath);
     char writeBuffer[BUFFER_SIZE] = {0};
     char readBuffer[BUFFER_SIZE] = {0};
 
@@ -336,7 +337,14 @@ int main(int argc, char *argv[]) {
                 printf("Error removing contact.\n");
                 break;
             }
-        } else {
+        } else if (strncmp(input, "-l", 2) == 0) {
+            printf("list contacts request received in the client\n");
+            if(send_list_req(filepath, fd) != STATUS_SUCCESS) {
+                printf("Error listing contacts.\n");
+                break;
+            }
+        } 
+        else {
             printf("Unknown command or format error. Available commands are '-a [contact info]'.\n");
         }
     }

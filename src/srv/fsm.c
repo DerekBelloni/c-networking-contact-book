@@ -66,7 +66,6 @@ int handle_client_fsm(clientstate_t *client) {
             printf("file path: %s\n", path->path);
             int count = 0;
             FILE *fp;
-            // struct contact_t *contacts = NULL;
             contact_t *contacts = NULL;
             char *file_mode = strdup("r+");
             if((char*)path->path) {
@@ -105,7 +104,6 @@ int handle_client_fsm(clientstate_t *client) {
             printf("file path: %s\n", path->path);
             int count = 0;
             FILE *fp;
-            // struct contact_t *contacts = NULL;
             contact_t *contacts = NULL;
             char *file_mode = strdup("r+");
             if((char*)path->path) {
@@ -144,7 +142,6 @@ int handle_client_fsm(clientstate_t *client) {
 
             int count = 0;
             FILE *fp;
-            // struct contact_t *contacts = NULL;
             contact_t *contacts = NULL;
             char *file_mode = strdup("r+");
             if((char*)path->path) {
@@ -168,6 +165,30 @@ int handle_client_fsm(clientstate_t *client) {
 
             write(client->fd, responseHdr, sizeof(proto_hdr_t));
             memset(responseHdr, 0, sizeof(proto_hdr_t));
+        }
+
+        if (clientHdr->type == MSG_CONTACT_LIST_REQ) {
+            printf("list contacts request received!\n");
+
+            if (clientHello->proto != PROTO_VER) {
+                handle_protocol_mismatch(client);
+            }
+
+            proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
+            int count = 0;
+            FILE *fp;
+            contact_t *contacts = NULL;
+            char *file_mode = strdup("r+");
+            if((char*)path->path) {
+                open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
+                if (fp == NULL) {
+                    printf("Unable to open file.\n");
+                    fclose(fp);
+                    return STATUS_ERROR;
+                }
+            }
+
+            
         }
     }
     
