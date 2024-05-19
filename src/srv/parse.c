@@ -58,7 +58,6 @@ int add_contact(contact_t **contacts, char *addstring, char *filepath, FILE **fp
 }
 
 int update_contact(contact_t **contacts, char *updateString, char *filepath, FILE **fp, int *count) {
-    printf("in parse\n");
     char *field, *replacement, *toBeReplaced;
     char *input = strdup(updateString);
     char *token;

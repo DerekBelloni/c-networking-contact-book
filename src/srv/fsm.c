@@ -10,14 +10,14 @@
 #include "fsm.h"
 #include "file.h"
 
-proto_file_path* initialize_contact_file(char *buffer, size_t req_type_offset, contact_t **contacts, FILE **fp, int count) {
+proto_file_path* initialize_contact_file(char *buffer, size_t req_type_offset, contact_t **contacts, FILE **fp, int *count) {
     printf("here\n");
     proto_file_path *path = (proto_file_path*)((char*)buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + req_type_offset);
 
     char *file_mode = strdup("r+");
     if((char*)path->path) {
         printf("in if\n");
-        open_contact_file((char*)path->path, contacts, fp, &count, file_mode);
+        open_contact_file((char*)path->path, contacts, fp, count, file_mode);
         free(file_mode);
         if (*fp == NULL) {
             printf("Unable to open file.\n");
@@ -81,23 +81,13 @@ int handle_client_fsm(clientstate_t *client) {
             }
 
             proto_add_req *addString = (proto_add_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
-            // proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
             
             int count = 0;
             FILE *fp;
             contact_t *contacts = NULL;
             proto_file_path *path = NULL;
-            // char *file_mode = strdup("r+");
-            // if((char*)path->path) {
-            //     open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
-            //     if (fp == NULL) {
-            //         printf("Unable to open file.\n");
-            //         fclose(fp);
-            //         return STATUS_ERROR;
-            //     }
-            // }
 
-            path = initialize_contact_file(client->buffer, sizeof(proto_add_req), &contacts, &fp, count);
+            path = initialize_contact_file(client->buffer, sizeof(proto_add_req), &contacts, &fp, &count);
             if (path == NULL) {
                 printf("Error initializing contact file\n");
                 return STATUS_ERROR;
@@ -127,20 +117,16 @@ int handle_client_fsm(clientstate_t *client) {
                 handle_protocol_mismatch(client);
             }
             
-            proto_update_req *updateString = (proto_update_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
-            proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_update_req));
-            printf("file path: %s\n", path->path);
+            proto_update_req *updateString = (proto_update_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));;
             int count = 0;
             FILE *fp;
             contact_t *contacts = NULL;
-            char *file_mode = strdup("r+");
-            if((char*)path->path) {
-                open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
-                if (fp == NULL) {
-                    printf("Unable to open file.\n");
-                    fclose(fp);
-                    return STATUS_ERROR;
-                }
+            proto_file_path *path = NULL;
+
+            path = initialize_contact_file(client->buffer, sizeof(proto_update_req), &contacts, &fp, &count);
+            if (path == NULL) {
+                printf("Error initializing contact file\n");
+                return STATUS_ERROR;
             }
 
             if (update_contact(&contacts, (char*)updateString, (char*)path->path, &fp, &count) != STATUS_SUCCESS) {
@@ -166,19 +152,17 @@ int handle_client_fsm(clientstate_t *client) {
             }
 
             proto_remove_req *removeString = (proto_remove_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
-            proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_update_req));
 
             int count = 0;
             FILE *fp;
             contact_t *contacts = NULL;
-            char *file_mode = strdup("r+");
-            if((char*)path->path) {
-                open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
-                if (fp == NULL) {
-                    printf("Unable to open file.\n");
-                    fclose(fp);
-                    return STATUS_ERROR;
-                }
+            proto_file_path *path = NULL;
+
+            path = initialize_contact_file(client->buffer, sizeof(proto_update_req), &contacts, &fp, &count);
+            printf("path: %s", path->path);
+            if (path == NULL) {
+                printf("Error initializing contact file\n");
+                return STATUS_ERROR;
             }
 
             if (remove_contact(&contacts, (char*)removeString, (char*)path->path, &fp, &count) != STATUS_SUCCESS) {
