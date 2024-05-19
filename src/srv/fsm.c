@@ -10,6 +10,25 @@
 #include "fsm.h"
 #include "file.h"
 
+proto_file_path* initialize_contact_file(char *buffer, size_t req_type_offset, contact_t **contacts, FILE **fp, int count) {
+    printf("here\n");
+    proto_file_path *path = (proto_file_path*)((char*)buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + req_type_offset);
+
+    char *file_mode = strdup("r+");
+    if((char*)path->path) {
+        printf("in if\n");
+        open_contact_file((char*)path->path, contacts, fp, &count, file_mode);
+        free(file_mode);
+        if (*fp == NULL) {
+            printf("Unable to open file.\n");
+            fclose(*fp);
+            return NULL;
+        }
+    }
+    printf("mango\n");
+    return path;
+}
+
 
 int handle_protocol_mismatch(clientstate_t *client) {
     proto_hdr_t *errorHdr = (proto_hdr_t*)client->buffer;
@@ -62,20 +81,29 @@ int handle_client_fsm(clientstate_t *client) {
             }
 
             proto_add_req *addString = (proto_add_req*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req));
-            proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
-            printf("file path: %s\n", path->path);
+            // proto_file_path *path = (proto_file_path*)((char*)client->buffer + sizeof(proto_hdr_t) + sizeof(proto_req) + sizeof(proto_add_req));
+            
             int count = 0;
             FILE *fp;
             contact_t *contacts = NULL;
-            char *file_mode = strdup("r+");
-            if((char*)path->path) {
-                open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
-                if (fp == NULL) {
-                    printf("Unable to open file.\n");
-                    fclose(fp);
-                    return STATUS_ERROR;
-                }
+            proto_file_path *path = NULL;
+            // char *file_mode = strdup("r+");
+            // if((char*)path->path) {
+            //     open_contact_file((char*)path->path, &contacts, &fp, &count, file_mode);
+            //     if (fp == NULL) {
+            //         printf("Unable to open file.\n");
+            //         fclose(fp);
+            //         return STATUS_ERROR;
+            //     }
+            // }
+
+            path = initialize_contact_file(client->buffer, sizeof(proto_add_req), &contacts, &fp, count);
+            if (path == NULL) {
+                printf("Error initializing contact file\n");
+                return STATUS_ERROR;
             }
+
+            printf("after initialize: %s", (char*)path->path);
 
             if (add_contact(&contacts, (char*)addString, (char*)path->path, &fp, &count) != STATUS_SUCCESS) {
                 printf("Error adding new contact.\n");
@@ -230,7 +258,6 @@ int handle_client_fsm(clientstate_t *client) {
                 return STATUS_ERROR;
             }
 
-            // Free the allocated memory for the contact list
             free(contact_list); 
         }
     }

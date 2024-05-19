@@ -12,11 +12,6 @@
 #include "common.h"
 #include "parse.h"
 
-int process_command() {
-
-   return 0; 
-}
-
 int send_list_req(char *filepath, int fd) {
     printf("file path in in list req, client: %s\n", filepath);
     char writeBuffer[BUFFER_SIZE] = {0};
@@ -63,7 +58,7 @@ int send_list_req(char *filepath, int fd) {
     }
 
     free(contact_list);
-    return 0;
+    return STATUS_SUCCESS;
 }
 
 int send_remove_req(char *removeString, char *filepath, int fd) {
@@ -114,7 +109,7 @@ int send_remove_req(char *removeString, char *filepath, int fd) {
         return STATUS_SUCCESS;
     }
 
-    return 0;
+    return STATUS_SUCCESS;
 }
 
 int send_update_req(char *updateString, char *filepath, int fd) {
@@ -190,12 +185,6 @@ int send_add_req(char *addString, char *filepath, int fd) {
     proto_file_path *path = (proto_file_path*)(contact + 1);
     snprintf((char*)path->path, sizeof(path->path), "%s", filepath);
 
-    // Debug: Print calculated addresses and their expected sizes
-    printf("Header starts at: %p, size: %zu\n", (void*)hdr, sizeof(proto_hdr_t));
-    printf("Request starts at: %p, size: %zu\n", (void*)req, sizeof(proto_req));
-    printf("Contact data starts at: %p, size: %zu\n", (void*)contact, sizeof(proto_add_req));
-    printf("File path starts at: %p, size: %zu\n", (void*)path, sizeof(proto_file_path));
-    printf("path before wtire: %s\n", path->path);
     // Send the buffer
     ssize_t bytes_written = write(fd, writeBuffer, ntohs(hdr->length) + sizeof(proto_hdr_t));
     if (bytes_written < 0) {
@@ -268,6 +257,42 @@ int send_request(int fd) {
     return STATUS_SUCCESS;
 }
 
+int process_command(char *input, char *filepath, int fd) {
+    if (strncmp(input, "-a ", 3) == 0) {
+        char *addString = input + 3; 
+        printf("add string: %s\n", addString);
+        if (send_add_req(addString, filepath, fd) != STATUS_SUCCESS) {
+            printf("Error adding new contact\n");
+            return STATUS_ERROR;
+        }
+    } else if (strncmp(input, "-u ", 3) == 0) {
+        char *updateString = input + 3;
+        printf("update string: %s\n", updateString);
+        if (send_update_req(updateString, filepath, fd) != STATUS_SUCCESS) {
+            printf("Error updating contact.\n");
+            return STATUS_ERROR;
+        }
+    } else if (strncmp(input, "-r ", 3) == 0) {
+        char *removeString = input + 3;
+        printf("remove string: %s\n", removeString);
+        if (send_remove_req(removeString, filepath, fd) != STATUS_SUCCESS) {
+            printf("Error removing contact.\n");
+            return STATUS_ERROR;
+        }
+    } else if (strncmp(input, "-l", 2) == 0) {
+        printf("list contacts request received in the client\n");
+        if (send_list_req(filepath, fd) != STATUS_SUCCESS) {
+            printf("Error listing contacts.\n");
+            return STATUS_ERROR;
+        }
+    } else {
+        printf("Unknown command or format error. Available commands are '-a [contact info]'.\n");
+        return STATUS_ERROR;
+    }
+    
+    return STATUS_SUCCESS; 
+}
+
 int main(int argc, char *argv[]) {
     int c;
     char *portarg = NULL;
@@ -338,38 +363,7 @@ int main(int argc, char *argv[]) {
     char input[1024];
     while (fgets(input, sizeof(input), stdin)) {
         input[strcspn(input, "\n")] = 0; 
-
-        if (strncmp(input, "-a ", 3) == 0) {
-            char *addString = input + 3; 
-            printf("add string: %s\n", addString);
-            if (send_add_req(addString, filepath, fd) != STATUS_SUCCESS) {
-                printf("Error adding new contact\n");
-                break;
-            }
-        } else if (strncmp(input, "-u ", 3) == 0) {
-            char *updateString = input + 3;
-            printf("update string: %s\n", updateString);
-            if (send_update_req(updateString, filepath, fd) != STATUS_SUCCESS) {
-                printf("Error updating contact.\n");
-                break;
-            }
-        } else if (strncmp(input, "-r ", 3) == 0) {
-            char *removeString = input + 3;
-            printf("remove string: %s\n", removeString);
-            if (send_remove_req(removeString, filepath, fd) != STATUS_SUCCESS) {
-                printf("Error removing contact.\n");
-                break;
-            }
-        } else if (strncmp(input, "-l", 2) == 0) {
-            printf("list contacts request received in the client\n");
-            if(send_list_req(filepath, fd) != STATUS_SUCCESS) {
-                printf("Error listing contacts.\n");
-                break;
-            }
-        } 
-        else {
-            printf("Unknown command or format error. Available commands are '-a [contact info]'.\n");
-        }
+        process_command(input, filepath, fd);
     }
 
     close(fd);

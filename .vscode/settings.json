@@ -22,6 +22,7 @@
     "files.associations": {
         "inet.h": "c",
         "string": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "fsm.h": "c"
     }
 }
